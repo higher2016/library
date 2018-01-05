@@ -1,65 +1,56 @@
 package com.higherli.library.netty;
 
-import com.higherli.library.netty.config.Config;
+import java.net.InetSocketAddress;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.ImmediateEventExecutor;
 
 public class Server extends Thread {
+	private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
+	private final EventLoopGroup group = new NioEventLoopGroup();
+	private Channel channel;
 
-	private final EventLoopGroup bossGroup;
-	private final EventLoopGroup workerGroup;
+	public ChannelFuture start(InetSocketAddress address) {
+		ServerBootstrap bootstrap = new ServerBootstrap();
+		bootstrap.group(group).channel(NioServerSocketChannel.class).childHandler(createInitializer(channelGroup));
+		ChannelFuture future = bootstrap.bind(address);
+		future.syncUninterruptibly();
+		channel = future.channel();
+		return future;
+	}
 
-	public Server() {
-		bossGroup = new NioEventLoopGroup(Config.NETTY_BOOS_THREAD);
-		workerGroup = new NioEventLoopGroup(Config.NETTY_WORKER_THREAD);
+	protected ChannelInitializer<Channel> createInitializer(ChannelGroup channelGroup) {
+		return new ServerInitializer(channelGroup);
+	}
+
+	public void destroy() {
+		if (channel != null) {
+			channel.close();
+		}
+		channelGroup.close();
+		group.shutdownGracefully();
 	}
 
 	@Override
 	public void run() {
-		ServerBootstrap b = new ServerBootstrap();
-		setChannelOption(b);
-		b.group(bossGroup, workerGroup);
-		b.channel(NioServerSocketChannel.class);
-		b.childHandler(new ChannelInitializer<SocketChannel>() {
+		int port = 9999;
+		final Server endpoint = new Server();
+		System.out.println("start---------------");
+		ChannelFuture future = endpoint.start(new InetSocketAddress(port));
+		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
-			public void initChannel(SocketChannel ch) throws Exception {
-				ChannelPipeline pipeline = ch.pipeline();
-				pipeline.addLast("idleStateCheck",
-						new IdleStateHandler(Config.CHECK_UNLOGIN_INTERVAL, Integer.MAX_VALUE, Integer.MAX_VALUE));
-//				pipeline.addLast("frameDecoder", new LengthFieldBasedFrameDecoder(Config.MAX_MSG_BYTE_LEN, 0, 4, 0, 0));
-				pipeline.addLast(new HttpServerCodec());
-				pipeline.addLast(new HttpObjectAggregator(1048576));
-				pipeline.addLast("deflater", new HttpContentCompressor());
-				pipeline.addLast(new MainHandler());
+			public void run() {
+				endpoint.destroy();
 			}
 		});
-		try {
-			ChannelFuture f = b.bind(Config.INET_IP, Config.INET_PORT).sync();
-//			f.channel().closeFuture().sync();
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void setChannelOption(ServerBootstrap bootstrap) {
-		bootstrap.option(ChannelOption.SO_REUSEADDR, true);
-		// bootstrap.option(ChannelOption.SO_BACKLOG, 128);
-		bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
-		bootstrap.childOption(ChannelOption.SO_KEEPALIVE, true);
-		// bootstrap.childOption(ChannelOption.ALLOCATOR,
-		// PooledByteBufAllocator.DEFAULT);
+		future.channel().closeFuture().syncUninterruptibly();
 	}
 }
