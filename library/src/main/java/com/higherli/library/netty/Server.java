@@ -2,6 +2,8 @@ package com.higherli.library.netty;
 
 import java.net.InetSocketAddress;
 
+import com.higherli.library.netty.config.Config;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -11,16 +13,20 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 
 public class Server extends Thread {
 	private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
-	private final EventLoopGroup group = new NioEventLoopGroup();
+	private final EventLoopGroup bossGroup = new NioEventLoopGroup(2, new DefaultThreadFactory("bossGroup"));
+	private final EventLoopGroup workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 3,
+			new DefaultThreadFactory("workerGroup"));
 	private Channel channel;
 
-	public ChannelFuture start(InetSocketAddress address) {
+	private ChannelFuture start(InetSocketAddress address) {
 		ServerBootstrap bootstrap = new ServerBootstrap();
-		bootstrap.group(group).channel(NioServerSocketChannel.class).childHandler(createInitializer(channelGroup));
+		bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
+				.childHandler(createInitializer(channelGroup));
 		ChannelFuture future = bootstrap.bind(address);
 		future.syncUninterruptibly();
 		channel = future.channel();
@@ -36,15 +42,14 @@ public class Server extends Thread {
 			channel.close();
 		}
 		channelGroup.close();
-		group.shutdownGracefully();
+		bossGroup.shutdownGracefully();
+		workerGroup.shutdownGracefully();
 	}
 
 	@Override
 	public void run() {
-		int port = 9999;
 		final Server endpoint = new Server();
-		System.out.println("start---------------");
-		ChannelFuture future = endpoint.start(new InetSocketAddress(port));
+		ChannelFuture future = endpoint.start(new InetSocketAddress(Config.INET_PORT));
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
