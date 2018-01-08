@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.higherli.library.base.BaseSpringAndJunit4Test;
 
-public class CalAveraServiceTest extends BaseSpringAndJunit4Test {
+public class CalAveraServiceTest extends BaseSpringAndJunit4Test{
 
 	@Autowired
 	private CalAveraService calAveraService;
