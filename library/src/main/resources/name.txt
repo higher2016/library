@@ -1,0 +1,6 @@
+类、成员变量命名规则及解释
+以下单词常见于包名、后缀等。这里做统一的介绍
+executor
+controller
+handler
+event

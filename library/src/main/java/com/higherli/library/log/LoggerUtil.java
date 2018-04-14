@@ -16,4 +16,8 @@ public class LoggerUtil {
 	public static void info(Object msg) {
 		LOG.info(msg);
 	}
+
+	public static void errorf(String format, Object... objs) {
+		LOG.warn(String.format(format, objs));
+	}
 }
