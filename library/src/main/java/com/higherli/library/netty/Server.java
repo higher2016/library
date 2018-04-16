@@ -9,15 +9,11 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.group.ChannelGroup;
-import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultThreadFactory;
-import io.netty.util.concurrent.ImmediateEventExecutor;
 
 public class Server extends Thread {
-	private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 	private final EventLoopGroup bossGroup = new NioEventLoopGroup(2, new DefaultThreadFactory("bossGroup"));
 	private final EventLoopGroup workerGroup = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 3,
 			new DefaultThreadFactory("workerGroup"));
@@ -25,23 +21,21 @@ public class Server extends Thread {
 
 	private ChannelFuture start(InetSocketAddress address) {
 		ServerBootstrap bootstrap = new ServerBootstrap();
-		bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class)
-				.childHandler(createInitializer(channelGroup));
+		bootstrap.group(bossGroup, workerGroup).channel(NioServerSocketChannel.class).childHandler(createInitializer());
 		ChannelFuture future = bootstrap.bind(address);
 		future.syncUninterruptibly();
 		channel = future.channel();
 		return future;
 	}
 
-	protected ChannelInitializer<Channel> createInitializer(ChannelGroup channelGroup) {
-		return new ServerInitializer(channelGroup);
+	protected ChannelInitializer<Channel> createInitializer() {
+		return new ServerInitializer();
 	}
 
 	public void destroy() {
 		if (channel != null) {
 			channel.close();
 		}
-		channelGroup.close();
 		bossGroup.shutdownGracefully();
 		workerGroup.shutdownGracefully();
 	}

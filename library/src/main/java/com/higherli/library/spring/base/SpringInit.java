@@ -22,6 +22,10 @@ public class SpringInit {
 		return appContext.getBean(type);
 	}
 
+	public static Object getBean(String name) {
+		return appContext.getBean(name);
+	}
+
 	public static <T> T getBean(String name, Class<T> type) {
 		return appContext.getBean(name, type);
 	}

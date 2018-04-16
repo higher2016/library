@@ -1,6 +1,7 @@
 package com.higherli.library.netty.http_process;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import com.higherli.library.event.syn.SynEventDispatcher;
 import com.higherli.library.event.syn.eventType.SynEventChannelActive;
 import com.higherli.library.event.syn.eventType.SynEventChannelInActive;
 import com.higherli.library.log.LoggerUtil;
+import com.higherli.library.spring.base.SpringInit;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -82,7 +84,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 			return;
 		}
 		String requestStr = ((TextWebSocketFrame) msg).text();
-		if(StringUtils.isBlank(requestStr)){
+		if (StringUtils.isBlank(requestStr)) {
 			ctx.channel().writeAndFlush("{\"error\":\"the request json can not be null!\"}");
 			LoggerUtil.error("Request josn is empty");
 			return;
@@ -125,7 +127,34 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 				}
 			}
 		}
+		handleRequest(req, ctx, params);
+	}
+	
+	private void requestPostMethod(HttpRequest req, ChannelHandlerContext ctx, Map<String, String> params) {
+		HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(factory, req, CharsetUtil.UTF_8);
+		if (decoder.hasNext()) {
+			List<InterfaceHttpData> dataList = decoder.getBodyHttpDatas();
+			QueryStringDecoder queryStringDecoder = new QueryStringDecoder(req.uri(), CharsetUtil.UTF_8);
+			Map<String, List<String>> paramsTmp = queryStringDecoder.parameters();
+			for (Entry<String, List<String>> entry : paramsTmp.entrySet()) {
+				for (String v : entry.getValue()) {
+					params.put(entry.getKey(), v);
+					break;
+				}
+			}
+			for (InterfaceHttpData interfaceHttpData : dataList) {
+				Attribute attribute = (Attribute) interfaceHttpData;
+				try {
+					params.put(attribute.getName(), attribute.getValue());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		handleRequest(req, ctx, params);
+	}
 
+	private void handleRequest(HttpRequest req, ChannelHandlerContext ctx, Map<String, String> params) {
 		byte[] content = EMPTY;
 		try {
 			params.put("ip", String.valueOf(ctx.channel().remoteAddress()));
@@ -153,31 +182,64 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 	 * @return
 	 */
 	private byte[] handlerRequest(HttpRequest req, Map<String, String> params) {
-		// TODO Auto-generated method stub
-		return null;
+		Object target = null;
+		try {
+			String[] arr = null;
+			if (params.containsKey("action")) {
+				// http://localhost:9081/login?action=login.test
+				String action = params.get("action");
+				if (action == null) {
+					return EMPTY;
+				}
+				arr = action.split("\\.");
+				if (arr.length != 2) {
+					return EMPTY;
+				}
+			} else {
+				// http://localhost:9801/login/test.mine 支持这种格式访问
+				if (req.uri() == null || req.uri().length() < 1) {
+					return EMPTY;
+				}
+				String uri = req.uri();
+				int endIndex = uri.indexOf('?');
+				if (endIndex > 1) {
+					uri = uri.substring(1, endIndex);
+				} else {
+					uri = uri.substring(1);
+				}
+				if (!uri.endsWith(".mine"))
+					return EMPTY;
+				else {
+					uri = uri.substring(0, uri.length() - 5);
+				}
+				arr = uri.split("/");
+			}
+			// class 和 action 都不为空
+			if (null != arr && arr.length > 1 && StringUtils.isNotBlank(arr[0]) && StringUtils.isNotBlank(arr[1])) {
+				target = SpringInit.getBean("HH" + firstToUpperCase(arr[0]));
+				Method method = target.getClass().getMethod(arr[1], Map.class);
+				Object ret = method.invoke(target, params);
+				if (ret == null) {
+					return EMPTY;
+				}
+				if (params.containsKey("file")) {
+					return (byte[]) ret;
+				} else {
+					// return JSONObject.toJSONString(ret).getBytes();
+					return String.valueOf(ret).getBytes();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return EMPTY;
 	}
 
-	private void requestPostMethod(HttpRequest req, ChannelHandlerContext ctx, Map<String, String> params) {
-		HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(factory, req, CharsetUtil.UTF_8);
-		if (decoder.hasNext()) {
-			List<InterfaceHttpData> dataList = decoder.getBodyHttpDatas();
-			QueryStringDecoder queryStringDecoder = new QueryStringDecoder(req.uri(), CharsetUtil.UTF_8);
-			Map<String, List<String>> paramsTmp = queryStringDecoder.parameters();
-			for (Entry<String, List<String>> entry : paramsTmp.entrySet()) {
-				for (String v : entry.getValue()) {
-					params.put(entry.getKey(), v);
-					break;
-				}
-			}
-			for (InterfaceHttpData interfaceHttpData : dataList) {
-				Attribute attribute = (Attribute) interfaceHttpData;
-				try {
-					params.put(attribute.getName(), attribute.getValue());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+	/**
+	 * 首字母大写
+	 */
+	private String firstToUpperCase(String str) {
+		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 
 	@Override
