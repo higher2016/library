@@ -1,6 +1,6 @@
 package com.higherli.library.netty;
 
-import com.higherli.library.netty.http_process.HttpServerHandler;
+import com.higherli.library.netty.channelinboundhandle.HttpServerHandler;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

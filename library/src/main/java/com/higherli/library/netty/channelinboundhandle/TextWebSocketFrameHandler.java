@@ -1,4 +1,4 @@
-package com.higherli.library.netty.http_process;
+package com.higherli.library.netty.channelinboundhandle;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
