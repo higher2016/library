@@ -15,8 +15,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -28,13 +28,11 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
-import io.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 
-public class HttpRequestProcess implements IProcess<HttpRequest>{
-	public static final HttpRequestProcess INSTANCE  = new HttpRequestProcess();
+public class HttpRequestProcess implements IProcess<FullHttpRequest> {
+	public static final HttpRequestProcess INSTANCE = new HttpRequestProcess();
 	private static final byte[] EMPTY = {};
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 	private static final AsciiString CONTENT_TYPE = new AsciiString("Content-Type");
@@ -44,37 +42,29 @@ public class HttpRequestProcess implements IProcess<HttpRequest>{
 
 	private HttpRequestProcess() {
 	}
-	
-	public void process(ChannelHandlerContext ctx, HttpRequest req) {
+
+	public void process(ChannelHandlerContext ctx, FullHttpRequest req) {
 		if (HttpUtil.is100ContinueExpected(req)) {
 			ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
 		}
-		
 		if (req.method() == HttpMethod.GET) {
 			handleGetMethod(req, ctx);
 		} else if (req.method() == HttpMethod.POST) {
 			handlePostMethod(req, ctx);
 		}
 	}
-	
-	private void handleGetMethod(HttpRequest req, ChannelHandlerContext ctx) {
-		if ("websocket".equalsIgnoreCase(req.headers().get("Upgrade"))) {
-			websocketHandshake(req, ctx);
+
+	private void handleGetMethod(FullHttpRequest req, ChannelHandlerContext ctx) {
+		if (isHttpRequestIsWebSocketHandshake(req)) {
+			ctx.fireChannelRead(req.retain());
 		} else {
 			Map<String, String> params = getParamsFromRequest(req);
 			handleRequest(req, ctx, params);
 		}
 	}
-	
-	private void websocketHandshake(HttpRequest req, ChannelHandlerContext ctx) {
-		WebSocketServerHandshakerFactory wsShakerFactory = new WebSocketServerHandshakerFactory(
-				"ws://" + req.headers().get(HttpHeaderNames.HOST), null, false);
-		WebSocketServerHandshaker wsShakerHandler = wsShakerFactory.newHandshaker(req);
-		if (null == wsShakerHandler) {
-			WebSocketServerHandshakerFactory.sendUnsupportedVersionResponse(ctx.channel());
-		} else {
-			wsShakerHandler.handshake(ctx.channel(), req);
-		}
+
+	private boolean isHttpRequestIsWebSocketHandshake(HttpRequest request) {
+		return "websocket".equalsIgnoreCase(request.headers().get("Upgrade"));
 	}
 
 	private void handlePostMethod(HttpRequest req, ChannelHandlerContext ctx) {
@@ -112,21 +102,26 @@ public class HttpRequestProcess implements IProcess<HttpRequest>{
 		byte[] content = EMPTY;
 		try {
 			params.put("ip", String.valueOf(ctx.channel().remoteAddress()));
-			content = handlerRequest(req, params);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
-				Unpooled.wrappedBuffer(content));
-		response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
-		response.headers().set("Access-Control-Allow-Origin", "*");
-		response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
+		content = handlerRequest(req, params);
+		FullHttpResponse response = handleResult2Response(content);
 		if (HttpUtil.isKeepAlive(req)) {
 			response.headers().set(CONNECTION, KEEP_ALIVE);
 			ctx.write(response);
 		} else {
 			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
 		}
+	}
+
+	private FullHttpResponse handleResult2Response(byte[] content) {
+		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
+				Unpooled.wrappedBuffer(content));
+		response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+		response.headers().set("Access-Control-Allow-Origin", "*");
+		response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
+		return response;
 	}
 
 	/**
@@ -195,5 +190,5 @@ public class HttpRequestProcess implements IProcess<HttpRequest>{
 	private String firstToUpperCase(String str) {
 		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
-	
+
 }

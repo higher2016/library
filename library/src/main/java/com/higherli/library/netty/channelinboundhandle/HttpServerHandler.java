@@ -3,19 +3,16 @@ package com.higherli.library.netty.channelinboundhandle;
 import com.higherli.library.event.syn.SynEventDispatcher;
 import com.higherli.library.event.syn.eventType.SynEventChannelActive;
 import com.higherli.library.event.syn.eventType.SynEventChannelInActive;
-import com.higherli.library.log.LoggerUtil;
-import com.higherli.library.netty.channelinboundhandle.process.CloseWebSocketFrameProcess;
 import com.higherli.library.netty.channelinboundhandle.process.HttpRequestProcess;
-import com.higherli.library.netty.channelinboundhandle.process.TextWebSocketFrameProcess;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.FullHttpRequest;
 
-public class HttpServerHandler extends ChannelInboundHandlerAdapter {
+/**
+ * 处理HTTP请求
+ */
+public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
 		SynEventDispatcher.INSTANCE.dispatchEvent(new SynEventChannelActive());
@@ -27,20 +24,8 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 	}
 
 	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-		if (msg instanceof HttpRequest) {
-			HttpRequestProcess.INSTANCE.process(ctx, (HttpRequest) msg);
-		} else {
-			if (msg instanceof CloseWebSocketFrame) {
-				CloseWebSocketFrameProcess.INSTANCE.process(ctx, (CloseWebSocketFrame) msg);
-			} else if (msg instanceof TextWebSocketFrame) {
-				TextWebSocketFrameProcess.INSTANCE.process(ctx, (TextWebSocketFrame) msg);
-			} else if (msg instanceof BinaryWebSocketFrame) {
-				LoggerUtil.error("request:" + msg);
-			} else {
-				LoggerUtil.error("request:" + msg);
-			}
-		}
+	protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) throws Exception {
+		HttpRequestProcess.INSTANCE.process(ctx, msg);
 	}
 
 	@Override
@@ -53,5 +38,4 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 		cause.printStackTrace();
 		ctx.close();
 	}
-
 }
