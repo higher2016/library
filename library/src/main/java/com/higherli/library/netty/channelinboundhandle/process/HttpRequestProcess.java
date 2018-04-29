@@ -17,6 +17,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -28,17 +30,12 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 
 public class HttpRequestProcess implements IProcess<FullHttpRequest> {
 	public static final HttpRequestProcess INSTANCE = new HttpRequestProcess();
 	private static final byte[] EMPTY = {};
 	private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
-	private static final AsciiString CONTENT_TYPE = new AsciiString("Content-Type");
-	private static final AsciiString CONTENT_LENGTH = new AsciiString("Content-Length");
-	private static final AsciiString CONNECTION = new AsciiString("Connection");
-	private static final AsciiString KEEP_ALIVE = new AsciiString("keep-alive");
 
 	private HttpRequestProcess() {
 	}
@@ -99,16 +96,15 @@ public class HttpRequestProcess implements IProcess<FullHttpRequest> {
 	}
 
 	private void handleRequest(HttpRequest req, ChannelHandlerContext ctx, Map<String, String> params) {
-		byte[] content = EMPTY;
 		try {
 			params.put("ip", String.valueOf(ctx.channel().remoteAddress()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		content = handlerRequest(req, params);
+		byte[] content = handlerRequest(req, params);
 		FullHttpResponse response = handleResult2Response(content);
 		if (HttpUtil.isKeepAlive(req)) {
-			response.headers().set(CONNECTION, KEEP_ALIVE);
+			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 			ctx.write(response);
 		} else {
 			ctx.write(response).addListener(ChannelFutureListener.CLOSE);
@@ -118,9 +114,9 @@ public class HttpRequestProcess implements IProcess<FullHttpRequest> {
 	private FullHttpResponse handleResult2Response(byte[] content) {
 		FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK,
 				Unpooled.wrappedBuffer(content));
-		response.headers().set(CONTENT_TYPE, "text/plain; charset=UTF-8");
+		response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		response.headers().set("Access-Control-Allow-Origin", "*");
-		response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
+		response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
 		return response;
 	}
 

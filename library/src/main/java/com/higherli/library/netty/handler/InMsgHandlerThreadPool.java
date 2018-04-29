@@ -27,7 +27,6 @@ public class InMsgHandlerThreadPool {
 
 	public final boolean acceptEvent(ServerEvent serverEvent, int distributeKey) {
 		InMsgHandlerThread thread = this.threads[distributeKey];
-		// TODO 这里可以做统计（总请求量）成功和不成功的
 		return thread.acceptEvent(serverEvent);
 	}
 

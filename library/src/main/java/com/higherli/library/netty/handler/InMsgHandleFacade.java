@@ -14,7 +14,6 @@ import com.higherli.library.netty.message.requset.RequestEvent;
 public class InMsgHandleFacade {
 
 	public static final InMsgHandleFacade INSTANCE = new InMsgHandleFacade();
-	// 本类可以持有多个线程池
 	private InMsgHandlerThreadPool extWorkerPool;
 	private IServerEventHandler exthandler;
 
@@ -32,10 +31,6 @@ public class InMsgHandleFacade {
 	}
 
 	public void acceptEvent(RequestEvent reqEvent, Session session, User user) {
-		// extWorkerPool.acceptEvent(
-		// new ServerEvent<HttpGetRequestEventData>(user.getUserId(), user,
-		// eventData, exthandler),
-		// user.getEventDistributeKey());
 		int userId = user == null ? 0 : user.getUserId();
 		extWorkerPool.acceptEvent(new ServerEvent(reqEvent, userId, user, exthandler), session.extDistributeKey);
 	}
