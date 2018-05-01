@@ -8,6 +8,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.higherli.library.log.LoggerUtil;
+
 /**
  * 多线程队列处理器<BR>
  * 特点：按数据接收顺序处理，但对于同一K值的V数据处理，既保证顺序，也是线程安全的<BR>
@@ -108,14 +110,13 @@ public class MultiThreadQueueWorker<K, V> implements IControl {
 					valueQueueWrap.hasBeenAppendedToKeyQueue = true;
 				} else {
 					add = false;
-					System.err.println(String
-							.format("<MultiThreadQueueWorker> Workers[%s] offer fail while accept. key:%s", name, key));
+					LoggerUtil.errorf("<MultiThreadQueueWorker> Workers[%s] offer fail while accept. key:%s", name,
+							key);
 				}
 			} else {
 				if (size > 0 && size % warnSize == 0) {
-					System.err.println(
-							String.format("<MultiThreadQueueWorker> Workers[%s] queue exceed warn size. key:%s size:%d",
-									name, key, size));
+					LoggerUtil.errorf("<MultiThreadQueueWorker> Workers[%s] queue exceed warn size. key:%s size:%d",
+							name, key, size);
 				}
 				valueQueueWrap.valueQueue.addLast(value);
 			}
@@ -152,8 +153,8 @@ public class MultiThreadQueueWorker<K, V> implements IControl {
 							if (keyQueue.offer(key)) {
 								valueQueueWrap.hasBeenAppendedToKeyQueue = true;
 							} else {
-								System.err.println(String.format(
-										"<MultiThreadQueueWorker> Workers[%s] offer fail after process.", name));
+								LoggerUtil.errorf("<MultiThreadQueueWorker> Workers[%s] offer fail after process.",
+										name);
 							}
 						}
 					}
@@ -163,7 +164,7 @@ public class MultiThreadQueueWorker<K, V> implements IControl {
 				}
 			} catch (Throwable t) {
 				if (running) {
-					System.err.println(String.format("<MultiThreadQueueWorker> Workers[%s] work process error.", name));
+					LoggerUtil.errorf("<MultiThreadQueueWorker> Workers[%s] work process error.", name);
 				}
 			}
 		}
@@ -202,14 +203,14 @@ public class MultiThreadQueueWorker<K, V> implements IControl {
 				long _inputCount = inputCount.get();
 				long _outputCount = ouputCount.get();
 				double ioRate = _outputCount == 0 ? 0 : (double) _inputCount * 100 / _outputCount;
-				String warnMsg = String.format("<MultiThreadQueueWorker> Workers[%s] io:%d/%d/%g%%", name, _inputCount,
-						_outputCount, ioRate);
-				System.out.println(warnMsg);
+				LoggerUtil.infof("<MultiThreadQueueWorker> Workers[%s] io:%d/%d/%g%%", name, _inputCount, _outputCount,
+						ioRate);
 				if (ioRate > warnIORate) {
-					System.err.println(warnMsg);
+					LoggerUtil.errorf("<MultiThreadQueueWorker> Workers[%s] io:%d/%d/%g%%", name, _inputCount,
+							_outputCount, ioRate);
 				}
 			} catch (Throwable t) {
-				System.err.println(String.format("<MultiThreadQueueWorker> Workers[%s] print io error.", name));
+				LoggerUtil.errorf("<MultiThreadQueueWorker> Workers[%s] print io error.", name);
 			}
 		}
 

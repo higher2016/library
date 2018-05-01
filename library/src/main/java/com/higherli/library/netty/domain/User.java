@@ -6,9 +6,8 @@ public class User {
 	private final int userId;
 	private final int eventDistributeKey; // 决定用户被分到哪一个线程，这个值就是用户所在用户线程池的index
 	private final Channel userChannel;
-	
-	public User(int userId, int eventDistributeKey,Channel userChannel) {
-		super();
+
+	public User(int userId, int eventDistributeKey, Channel userChannel) {
 		this.userId = userId;
 		this.eventDistributeKey = eventDistributeKey;
 		this.userChannel = userChannel;
@@ -25,5 +24,5 @@ public class User {
 	public Channel getUserChannel() {
 		return userChannel;
 	}
-	
+
 }

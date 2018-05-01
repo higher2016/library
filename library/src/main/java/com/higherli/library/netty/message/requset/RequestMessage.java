@@ -16,7 +16,7 @@ public class RequestMessage {
 			jsonObject = JSONObject.parseObject(jsonStr);
 			verifyRequestMessage(jsonObject);
 		} catch (JSONException | IllegalArgumentException e) {
-//			LoggerUtil.error("<<RequestMessage>> json object parse error!", e);
+			LoggerUtil.error("<<RequestMessage>> json object parse error!", e);
 			throw e;
 		}
 		RequestMessage message = new RequestMessage(jsonObject);

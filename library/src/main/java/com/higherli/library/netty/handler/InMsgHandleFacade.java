@@ -1,6 +1,5 @@
 package com.higherli.library.netty.handler;
 
-import com.higherli.library.netty.Session;
 import com.higherli.library.netty.config.Config;
 import com.higherli.library.netty.domain.User;
 import com.higherli.library.netty.lib.ExtensionHandler;
@@ -30,9 +29,11 @@ public class InMsgHandleFacade {
 		return extWorkerPool.threadNum;
 	}
 
-	public void acceptEvent(RequestEvent reqEvent, Session session, User user) {
+	public void acceptEvent(RequestEvent reqEvent, User user) {
 		int userId = user == null ? 0 : user.getUserId();
-		extWorkerPool.acceptEvent(new ServerEvent(reqEvent, userId, user, exthandler), session.extDistributeKey);
+		// User --> distributeKey玩家对应的玩家线程一旦登录，则玩家线程不会改变
+		int distributeKey = userId % Config.EXT_HANDLER_THREADS_NUM;
+		extWorkerPool.acceptEvent(new ServerEvent(reqEvent, userId, user, exthandler), distributeKey);
 	}
 
 	public void shutdown() throws InterruptedException {
