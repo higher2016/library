@@ -1,4 +1,4 @@
-package com.higherli.library.guava;
+package guava;
 
 import static org.junit.Assert.assertEquals;
 

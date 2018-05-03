@@ -1,0 +1,8 @@
+mybatis测试用例建表语句
+
+CREATE TABLE `TestBean` (
+`id`  int(8) NOT NULL ,
+`age`  int(4) NOT NULL ,
+`name`  varchar(255) NULL ,
+PRIMARY KEY (`id`)
+);
