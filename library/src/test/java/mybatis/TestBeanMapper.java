@@ -11,14 +11,16 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestBeanMapper {
+import com.higherli.library.log.LogInit;
+
+public class TestBeanMapper{
 
 	private static SqlSessionFactory sqlSessionFactory;
-	private static Reader reader;
 
 	@BeforeClass
 	public static void beforeClass() throws IOException {
-		reader = Resources.getResourceAsReader("mybatistest/mybatis-cfg.xml");
+		LogInit.init();
+		Reader reader = Resources.getResourceAsReader("mybatistest/mybatis-cfg.xml");
 		sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
 		deleteAll();
 	}

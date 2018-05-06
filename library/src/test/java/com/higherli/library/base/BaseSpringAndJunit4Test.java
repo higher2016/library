@@ -12,7 +12,7 @@ import com.higherli.library.log.LogInit;
 public abstract class BaseSpringAndJunit4Test {
 
 	@BeforeClass
-	public static void beforeClass() {
+	public static void beforeClassAll() {
 		LogInit.init();
 	}
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mybatis_spring.BeanMapper"><!--标志mapper(映射)是哪一个接口的mapper -->
+	<resultMap id="beanMapper" type="mybatis_spring.Bean"><!--声明mapper的id type表示映射道德javabean -->
+		<id column="id" property="id" /><!--id 主键 column☞数据库 property☞javabean 这里省略了java type等 -->
+		<result property="name" column="name" />
+		<result property="age" column="age" />
+	</resultMap>
+	<insert id="insertBean" parameterType="mybatis_spring.Bean"><!--parameter表示传入参数是啥 --><!--对应StudentMapper接口里的方法名 -->
+		INSERT INTO TestBean (id,name,age) VALUES(#{id},#{name},#{age})
+		<!--#{}对应studentmapper里的参数 -->
+	</insert>
+	<select id="selectOneById" resultMap="beanMapper">
+		SELECT * FROM TestBean WHERE id=#{id}
+	</select>
+	<select id="selectAllBean" resultMap="beanMapper"><!--resultType可设定返回类型 -->
+		SELECT *FROM TestBean
+	</select>
+	<delete id="deleteBean">
+		DELETE FROM TestBean WHERE id=#{id}
+	</delete>
+</mapper>
