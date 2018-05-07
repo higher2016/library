@@ -13,45 +13,27 @@
 	http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
 	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
 	 
-	<!-- 自动扫描指定包下的Mapper接口进行注册,注册Bean的命名规则以类名首字符小写 -->
-	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="cn.com.vsa.mine.repository" />
-		<!-- 扫描时,必须有Repository注解的类才加载进来 -->
-		<property name="annotationClass" value="org.springframework.stereotype.Repository"/>
-		
-		<property name="sqlSessionTemplateBeanName" value="sqlSession"/>
+	<context:component-scan base-package="com.higherli.library.extensions.*" />
+	<context:property-placeholder location="classpath:dbconfig.properties" />
+
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
 	</bean>
-	
-	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
-		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl" value="jdbc:mysql://192.168.0.172:3306/mine?characterEncoding=utf8" />
-		<property name="user" value="chxiao" />
-		<property name="password" value="chxiao" />
-        <property name="maxPoolSize" value="5" />
-        <property name="initialPoolSize" value="2" />
-        <property name="minPoolSize" value="4" />  
-        <property name="idleConnectionTestPeriod" value="6000" />
-	</bean>
-		
-	<!-- <bean id="vsDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
-		<property name="driverClass" value="com.mysql.jdbc.Driver" />
-		<property name="jdbcUrl" value="jdbc:mysql://192.168.1.120:3306/gamedev_bak?characterEncoding=utf8" />
-		<property name="user" value="cx" />
-		<property name="password" value="cx" />
-        <property name="maxPoolSize" value="5" />
-        <property name="initialPoolSize" value="2" />
-        <property name="minPoolSize" value="4" />  
-        <property name="idleConnectionTestPeriod" value="6000" />
-	</bean> -->
 
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
-		<property name="configLocation" value="classpath:mybatis.cfg.xml" />
-		<property name="mapperLocations" value="classpath*:cn/com/vsa/**/*Dao.xml"></property>
 	</bean>
-	
-	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
-	 	<constructor-arg index="0" ref="sqlSessionFactory" />
-	 </bean>
 
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.higherli.library.extensions.*" />
+		<property name="annotationClass" value="org.springframework.stereotype.Repository" />
+		<property name="sqlSessionTemplateBeanName" value="sqlSession" />
+	</bean>
 </beans>

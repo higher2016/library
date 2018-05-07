@@ -9,7 +9,7 @@ import com.higherli.library.log.LogInit;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({ "/spring/app*.xml" })
-public abstract class BaseSpringAndJunit4Test {
+public class BaseSpringAndJunit4Test {
 
 	@BeforeClass
 	public static void beforeClassAll() {
