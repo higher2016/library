@@ -1,18 +1,45 @@
 package com.higherli.library.base;
 
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
-import com.higherli.library.log.LogInit;
+import com.higherli.library.Main;
+import com.higherli.library.spring.base.SpringConfig;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({ "/spring/app*.xml" })
+
 public class BaseSpringAndJunit4Test {
+	static {
+		String xmlPath = "file:" + SpringConfig.testSpringConfigPath0 + File.separator + "applicationContext.xml";
+		String[] arg0 = new String[] { xmlPath };
+		try {
+			Main.main(arg0);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-	@BeforeClass
-	public static void beforeClassAll() {
-		LogInit.init();
+	public static boolean isLoclePortUsing(int port) {
+		boolean flag = true;
+		try {
+			flag = isPortUsing("127.0.0.1", port);
+		} catch (Exception e) {
+		}
+		return flag;
+	}
+
+	@SuppressWarnings({ "unused", "resource" })
+	public static boolean isPortUsing(String host, int port) throws UnknownHostException {
+		boolean flag = false;
+		InetAddress theAddress = InetAddress.getByName(host);
+		try {
+			Socket socket = new Socket(theAddress, port);
+			flag = true;
+		} catch (IOException e) {
+
+		}
+		return flag;
 	}
 }

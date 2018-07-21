@@ -14,7 +14,7 @@
 	http://www.springframework.org/schema/cache/spring-cache-4.2.xsd">
 
 	<context:component-scan base-package="mybatis_spring" />
-	<context:property-placeholder location="classpath:mybatis_springtest/jdbc.properties" />
+	<context:property-placeholder location="classpath:test/mybatis_springtest/jdbc.properties" />
 
 	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
 		<property name="driverClassName" value="${jdbc.driver}" />

@@ -64,6 +64,10 @@ public class RequestMessage {
 		return jsonObject.get(key);
 	}
 
+	public String getString(String key) {
+		return (String) jsonObject.get(key);
+	}
+
 	@SuppressWarnings("unchecked")
 	public <T> T getObject(String key, T clazz) {
 		Object o = jsonObject.get(key);

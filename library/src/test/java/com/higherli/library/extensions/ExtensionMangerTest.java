@@ -27,11 +27,6 @@ public class ExtensionMangerTest extends BaseSpringAndJunit4Test {
 		return (ExtensionManger) c.newInstance();
 	}
 
-	@Test
-	public void testRegisteredExtension() {
-		manger.registeredExtension(1, new TestExtension());
-	}
-
 	@Test(expected = IllegalArgumentException.class)
 	public void testRegisteredExtensionException() {
 		manger.registeredExtension(1, new TestExtension());
@@ -40,7 +35,7 @@ public class ExtensionMangerTest extends BaseSpringAndJunit4Test {
 
 	@Test
 	public void testHandleRequest() {
-		manger.registeredExtension(1, new TestExtension());
+		manger.registeredExtension(2, new TestExtension());
 		manger.handleRequest(RequestMessage.parse(RequestMessageTest.getTemplateRequestMessageStr()), null);
 	}
 

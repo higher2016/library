@@ -2,12 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org/DTD Mapper 3.0"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.higherli.library.extensions.login.dao.UserLoginMapper">
+<mapper namespace="com.higherli.library.extensions.login.dao.UserLoginInfoMapper">
 	<insert id="insert">
 		INSERT INTO UserLogin (UserId,Name,Password) VALUES(#{userId},#{name},#{password})
-		<!--#{}对应studentmapper里的参数 -->
 	</insert>
 	<select id="selectByUserId">
 		SELECT * FROM UserLogin WHERE UserId=#{userId}
 	</select>
+	<delete id="deleteByUserId">
+		DELETE FROM UserLogin WHERE UserId=#{userId}
+	</delete>
 </mapper>

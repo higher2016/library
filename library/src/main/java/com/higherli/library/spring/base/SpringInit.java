@@ -1,7 +1,5 @@
 package com.higherli.library.spring.base;
 
-import java.io.File;
-
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -10,9 +8,13 @@ import com.higherli.library.log.LoggerUtil;
 public class SpringInit {
 	private static ApplicationContext appContext;
 
-	public static void init() {
-		appContext = new ClassPathXmlApplicationContext(
-				"file:" + SpringConfig.springConfigPath0 + File.separator + "applicationContext.xml");
+	/**
+	 * 初始化spring组件
+	 * 
+	 * @param xmlPath:spring主配置文件路径
+	 */
+	public static void init(String xmlPath) {
+		appContext = new ClassPathXmlApplicationContext(xmlPath);
 		for (String name : appContext.getBeanDefinitionNames()) {
 			LoggerUtil.debug(name);
 		}

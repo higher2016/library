@@ -1,7 +1,12 @@
 package com.higherli.library.extensions.login.dao;
 
-public interface UserLoginInfoMapper {
-	public void insert();
+import org.springframework.stereotype.Repository;
 
-	public void selectByUserId(int userId);
+@Repository
+public interface UserLoginInfoMapper {
+	public void insert(UserLoginInfo userLoginInfo);
+
+	public UserLoginInfo selectByUserId(int userId);
+	
+	public void deleteByUserId(int userId);
 }

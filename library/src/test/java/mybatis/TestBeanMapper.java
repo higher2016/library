@@ -20,7 +20,7 @@ public class TestBeanMapper{
 	@BeforeClass
 	public static void beforeClass() throws IOException {
 		LogInit.init();
-		Reader reader = Resources.getResourceAsReader("mybatistest/mybatis-cfg.xml");
+		Reader reader = Resources.getResourceAsReader("test/mybatistest/mybatis-cfg.xml");
 		sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
 		deleteAll();
 	}

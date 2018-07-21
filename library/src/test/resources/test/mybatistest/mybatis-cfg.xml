@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
 
-	<properties resource="mybatistest/jdbc.properties" /> <!--加载配置文件->jdbc.properties 数据库文件 -->
+	<properties resource="test/mybatistest/jdbc.properties" /> <!--加载配置文件->jdbc.properties 数据库文件 -->
 
 	<typeAliases><!--对象映射的位置 -->
 		<!--<typeAlias type="entity.Student"/>直接写n个对象 -->

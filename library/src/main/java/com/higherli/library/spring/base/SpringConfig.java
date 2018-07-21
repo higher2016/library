@@ -6,4 +6,8 @@ public class SpringConfig {
 	public static String springConfigPath0 = new StringBuilder(System.getProperty("user.dir")).append(File.separator)
 			.append("src").append(File.separator).append("main").append(File.separator).append("resources")
 			.append(File.separator).append("spring").toString();
+
+	public static String testSpringConfigPath0 = new StringBuilder(System.getProperty("user.dir")).append(File.separator)
+			.append("src").append(File.separator).append("test").append(File.separator).append("resources")
+			.append(File.separator).append("test").append(File.separator).append("spring").toString();
 }

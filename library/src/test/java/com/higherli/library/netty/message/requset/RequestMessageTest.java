@@ -19,8 +19,8 @@ public class RequestMessageTest extends BaseSpringAndJunit4Test{
 		String jsonStr = getTemplateRequestMessageStr();
 		RequestMessage message = RequestMessage.parse(jsonStr);
 		assertEquals(1, message.getMsgType());
-		assertEquals(12, message.getAction());
-		assertEquals(6, message.getCmdIndex());
+		assertEquals(1, message.getAction());
+		assertEquals(1, message.getCmdIndex());
 	}
 	
 	public static String getTemplateRequestMessageStr(){
